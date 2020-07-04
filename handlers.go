@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"reflect"
 
-	"github.com/julienschmidt/httprouter"
+	"github.com/gocraft/web"
 )
 
 // func (ctx *Context) makeDefaultGetHandler(t reflect.Type) http.Handler {
@@ -21,12 +21,9 @@ type DefaultHandler struct {
 	resourceType reflect.Type
 }
 
-func makeDefaultListHandleFunc(res interface{}, core *Core) httprouter.Handle {
+func makeDefaultListHandleFunc(res interface{}, core *Core) HandleFunc {
 	resourceType := reflect.TypeOf(res)
-	return func(rw http.ResponseWriter, req *http.Request, params httprouter.Params) {
-		log.Println("listing")
-
-		ctx := newContext(core)
+	return func(ctx *Context, rw web.ResponseWriter, req *web.Request) {
 
 		filters := make(map[string]interface{}, 0)
 		decoder := json.NewDecoder(req.Body)
@@ -51,12 +48,11 @@ func makeDefaultListHandleFunc(res interface{}, core *Core) httprouter.Handle {
 	}
 }
 
-func makeDefaultGetHandleFunc(res interface{}, core *Core) httprouter.Handle {
+func makeDefaultGetHandleFunc(res interface{}, core *Core) HandleFunc {
 	resourceType := reflect.TypeOf(res)
-	return func(rw http.ResponseWriter, req *http.Request, params httprouter.Params) {
-		ctx := newContext(core)
+	return func(ctx *Context, rw web.ResponseWriter, req *web.Request) {
 
-		key := params.ByName("id")
+		key := req.PathParams["id"]
 		ps := ctx.PersistentStore
 		resourceName := resourceType.Name()
 		value := reflect.New(resourceType).Interface()
@@ -70,12 +66,11 @@ func makeDefaultGetHandleFunc(res interface{}, core *Core) httprouter.Handle {
 	}
 }
 
-func makeDefaultPostHandleFunc(res interface{}, core *Core) httprouter.Handle {
+func makeDefaultPostHandleFunc(res interface{}, core *Core) HandleFunc {
 	resourceType := reflect.TypeOf(res)
-	return func(rw http.ResponseWriter, req *http.Request, params httprouter.Params) {
-		ctx := newContext(core)
+	return func(ctx *Context, rw web.ResponseWriter, req *web.Request) {
 
-		key := params.ByName("id")
+		key := req.PathParams["id"]
 		ps := ctx.PersistentStore
 		resourceName := resourceType.Name()
 		value := reflect.New(resourceType).Interface()
@@ -94,12 +89,11 @@ func makeDefaultPostHandleFunc(res interface{}, core *Core) httprouter.Handle {
 	}
 }
 
-func makeDefaultDeleteHandleFunc(res interface{}, core *Core) httprouter.Handle {
+func makeDefaultDeleteHandleFunc(res interface{}, core *Core) HandleFunc {
 	resourceType := reflect.TypeOf(res)
-	return func(rw http.ResponseWriter, req *http.Request, params httprouter.Params) {
-		ctx := newContext(core)
+	return func(ctx *Context, rw web.ResponseWriter, req *web.Request) {
 
-		key := params.ByName("id")
+		key := req.PathParams["id"]
 		ps := ctx.PersistentStore
 		resourceName := resourceType.Name()
 

@@ -21,6 +21,11 @@ type Context struct {
 
 func newContext(core *Core) Context {
 	ctx := Context{}
+	fillContext(core, &ctx)
+	return ctx
+}
+
+func fillContext(core *Core, ctx *Context) {
 	sessionStore := core.PersistentStore.Session()
 	if sessionStore == nil {
 		sessionStore = core.PersistentStore
@@ -28,7 +33,6 @@ func newContext(core *Core) Context {
 	ctx.PersistentStore = sessionStore
 	ctx.Validators = &core.Validators
 	ctx.EventSink = core.EventSink
-	return ctx
 }
 
 func ExtractPersistentStore(ctx context.Context) PersistentStore {

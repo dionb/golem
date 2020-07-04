@@ -1,6 +1,10 @@
 package crudinator
 
-import "net/http"
+import (
+	"net/http"
+
+	"github.com/gocraft/web"
+)
 
 // ValidatorFunc describes the format for validator functions. The annotation used to call the validator is provided to enable implementing variations within the same validator (eg: dates)
 type ValidatorFunc func(value interface{}, annotation string) error
@@ -41,15 +45,16 @@ type PersistentStore interface {
 	Raw() interface{}
 }
 
-type AuthProvider interface {
-}
+type AuthProvider interface{}
+
+type HandleFunc func(ctx *Context, rw web.ResponseWriter, req *web.Request)
 
 type StdGetHandler interface {
 	Get(rw http.ResponseWriter, req *http.Request)
 }
 
 type CRUDGetHandler interface {
-	Get(rw http.ResponseWriter, req *http.Request, ctx Context)
+	Get(ctx *Context, rw web.ResponseWriter, req *web.Request)
 }
 
 type StdListHandler interface {

@@ -5,13 +5,13 @@ import (
 	"os"
 	"reflect"
 
-	"github.com/julienschmidt/httprouter"
+	"github.com/gocraft/web"
 )
 
 type Core struct {
 	Validators      map[reflect.Type]map[string]ValidatorFunc
 	Resources       map[string]interface{}
-	Router          *httprouter.Router
+	Router          *web.Router
 	EventSink       EventSink
 	PersistentStore PersistentStore
 	OauthProvider   AuthProvider
@@ -19,16 +19,17 @@ type Core struct {
 }
 
 // New will return a new Core object with the config parsed and EventSink, PersistentStore, Oauth Provider
-func New() Core {
+func New() *Core {
 	core := Core{}
 
 	core.Config = ParseConfig()
 
 	core.Resources = make(map[string]interface{})
 
-	core.Router = httprouter.New()
+	core.Router = web.New(Context{})
+	core.Router.Middleware(makeInitContextMw(&core))
 
-	return core
+	return &core
 }
 
 func (core *Core) RegisterValidator(name string, validator ValidatorFunc) {
@@ -52,15 +53,15 @@ func (core *Core) RegisterResource(res interface{}) {
 	core.Resources[name] = res
 
 	if getter, ok := res.(StdGetHandler); ok {
-		core.Router.HandlerFunc("GET", "/"+name+"/:id", injectMiddlewareStd(core, getter.Get))
+		core.Router.Get("/"+name+"/:id", injectMiddlewareStd(core, getter.Get))
 	} else {
-		core.Router.GET("/"+name+"/:id", makeDefaultGetHandleFunc(res, core))
+		core.Router.Get("/"+name+"/:id", makeDefaultGetHandleFunc(res, core))
 	}
 
 	if lister, ok := res.(StdListHandler); ok {
-		core.Router.HandlerFunc("GET", "/"+name+"/", injectMiddlewareStd(core, lister.List))
+		core.Router.Get("/"+name, injectMiddlewareStd(core, lister.List))
 	} else {
-		core.Router.GET("/"+name, makeDefaultListHandleFunc(res, core))
+		core.Router.Get("/"+name, makeDefaultListHandleFunc(res, core))
 	}
 
 }

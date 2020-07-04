@@ -55,8 +55,9 @@ func (fps *FuzzerPS) List(tableName string, filters map[string]interface{}, dst 
 	return nil
 }
 
-func (fps *FuzzerPS) Set(key string, tablename string, value interface{}) {
+func (fps *FuzzerPS) Set(key interface{}, tablename string, value interface{}) error {
 	log.Printf("saving: %s.%s: %#v", tablename, key, value)
+	return nil
 }
 
 func (fps *FuzzerPS) Session() crudinator.PersistentStore {
