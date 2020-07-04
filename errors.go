@@ -2,6 +2,7 @@ package crudinator
 
 import (
 	"errors"
+	"log"
 	"net/http"
 )
 
@@ -17,6 +18,8 @@ func HandleError(rw http.ResponseWriter, err error) bool {
 	if errors.Is(ErrNotFound, err) {
 		rw.WriteHeader(http.StatusNotFound)
 	}
+
+	log.Println(err.Error())
 
 	return true
 }

@@ -19,17 +19,20 @@ type PersistentStore interface {
 	// Get returns the object identified by the given key from the table with the supplied name, and saves the result into the supplied dst object pointer
 	Get(key interface{}, tableName string, dst interface{}) error
 
+	// List returns a list of objects filtered using key:value pairs. The interface passed into List will always be a pointer to a slice of the reource to be listed
+	List(tableName string, filters map[string]interface{}, dst interface{}) error
+
 	// Insert will create a new entry using the provided key and value and will return an error if the operation has failed.
-	Insert(key interface{}, value interface{}) error
+	Insert(key interface{}, tableName string, value interface{}) error
 
 	// Insert will create a new entry using the provided key and value and overwrite the existing value if it does exist, and will return an error if the operation has failed.
-	Set(key interface{}, value interface{}) error
+	Set(key interface{}, tableName string, value interface{}) error
 
 	// Update will provide partial modification of objects in a json-patch style update (TBD)
-	Update(key interface{}, value interface{}) error
+	Update(key interface{}, tableName string, value interface{}) error
 
 	// Delete will remove the entry associated with the provided key
-	Delete(key interface{}) error
+	Delete(key interface{}, tableName string) error
 
 	// Close will close the underlying connection
 	Close() error
@@ -41,10 +44,14 @@ type PersistentStore interface {
 type AuthProvider interface {
 }
 
-type hasStdGetHandler interface {
+type StdGetHandler interface {
 	Get(rw http.ResponseWriter, req *http.Request)
 }
 
-type hasCRUDGetHandler interface {
+type CRUDGetHandler interface {
 	Get(rw http.ResponseWriter, req *http.Request, ctx Context)
+}
+
+type StdListHandler interface {
+	List(rw http.ResponseWriter, req *http.Request)
 }

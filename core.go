@@ -51,10 +51,16 @@ func (core *Core) RegisterResource(res interface{}) {
 
 	core.Resources[name] = res
 
-	if getter, ok := res.(hasStdGetHandler); ok {
-		core.Router.HandlerFunc("GET", "/"+name, injectMiddlewareStd(core, getter.Get))
+	if getter, ok := res.(StdGetHandler); ok {
+		core.Router.HandlerFunc("GET", "/"+name+"/:id", injectMiddlewareStd(core, getter.Get))
 	} else {
 		core.Router.GET("/"+name+"/:id", makeDefaultGetHandleFunc(res, core))
+	}
+
+	if lister, ok := res.(StdListHandler); ok {
+		core.Router.HandlerFunc("GET", "/"+name+"/", injectMiddlewareStd(core, lister.List))
+	} else {
+		core.Router.GET("/"+name, makeDefaultListHandleFunc(res, core))
 	}
 
 }
