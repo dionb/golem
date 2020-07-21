@@ -7,11 +7,13 @@ type Config struct {
 }
 
 type PersistentStoreConfig struct {
+	Engine   string //type of db. Eg: "postgres", "mysql",
 	Host     string
 	Port     string
 	Protocol string
 	Username string
 	Password string
+	Schema   string
 
 	ConnectionString string
 }

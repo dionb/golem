@@ -60,3 +60,7 @@ type CRUDGetHandler interface {
 type StdListHandler interface {
 	List(rw http.ResponseWriter, req *http.Request)
 }
+
+type StdSetHandler interface {
+	Set(rw http.ResponseWriter, req *http.Request)
+}

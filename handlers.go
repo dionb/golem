@@ -35,7 +35,6 @@ func makeDefaultListHandleFunc(res interface{}, core *Core) HandleFunc {
 		resourceName := resourceType.Name()
 
 		value := reflect.New(reflect.SliceOf(resourceType))
-		log.Println(value.Kind().String())
 
 		if HandleError(rw, ps.List(resourceName, filters, value.Interface())) {
 			return

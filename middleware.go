@@ -9,5 +9,9 @@ func makeInitContextMw(core *Core) func(*Context, web.ResponseWriter, *web.Reque
 		fillContext(core, ctx)
 
 		next(rw, req)
+
+		if rw.StatusCode() == 0 {
+			rw.WriteHeader(200)
+		}
 	}
 }

@@ -1,10 +1,12 @@
 package crudinator
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"reflect"
 
+	"github.com/dionb/crudinator/storage/gocraftPStore"
 	"github.com/gocraft/web"
 )
 
@@ -19,21 +21,38 @@ type Core struct {
 }
 
 // New will return a new Core object with the config parsed and EventSink, PersistentStore, Oauth Provider
-func New() *Core {
+func New(conf ...Config) (*Core, error) {
 	core := Core{}
 
-	core.Config = ParseConfig()
+	if len(conf) > 0 {
+		core.Config = conf[0]
+	} else {
+		core.Config = ParseConfig()
+	}
 
 	core.Resources = make(map[string]interface{})
 
 	core.Router = web.New(Context{})
 	core.Router.Middleware(makeInitContextMw(&core))
 
-	return &core
+	var ps PersistentStore
+	switch core.Config.PersistentStore.Engine {
+	case "mysql":
+		fallthrough
+	case "postgres":
+		ps = gocraftPStore.New().(PersistentStore)
+
+	}
+	err := core.RegisterPersistentStore(ps)
+	if err != nil {
+		return nil, fmt.Errorf("initialising persistent store: %w", err)
+	}
+
+	return &core, nil
 }
 
 func (core *Core) RegisterValidator(name string, validator ValidatorFunc) {
-
+	// core.Validators[name] = validator
 }
 
 func (core *Core) RegisterResource(res interface{}) {
@@ -64,8 +83,19 @@ func (core *Core) RegisterResource(res interface{}) {
 		core.Router.Get("/"+name, makeDefaultListHandleFunc(res, core))
 	}
 
+	if setter, ok := res.(StdSetHandler); ok {
+		core.Router.Post("/"+name, injectMiddlewareStd(core, setter.Set))
+	} else {
+		core.Router.Post("/"+name, makeDefaultSetHandleFunc(res, core))
+	}
 }
 
-func (core *Core) RegisterPersistentStore(ps PersistentStore) {
+func (core *Core) RegisterPersistentStore(ps PersistentStore) error {
+	err := ps.Connect(core.Config.PersistentStore)
+	if err != nil {
+		return fmt.Errorf("verifying connection details: %w", err)
+	}
+
 	core.PersistentStore = ps
+	return nil
 }

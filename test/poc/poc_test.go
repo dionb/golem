@@ -2,46 +2,66 @@ package main
 
 import (
 	"log"
-	"net/http"
 	"testing"
 
 	"github.com/dionb/crudinator"
 	"github.com/dionb/crudinator/test/fixtures"
+	"gotest.tools/assert"
 )
 
 func init() {
 	log.SetFlags(log.Llongfile)
 }
 
-func TestBasicGET(t *testing.T) {
-	core := crudinator.New()
-
-	core.RegisterPersistentStore(&fixtures.FuzzerPS{})
-	core.RegisterResource(Resource1{})
-
-	req, _ := http.NewRequest("GET", "/Resource1", nil)
-	rw := fixtures.MockRW{}
-	core.Router.ServeHTTP(&rw, req)
-
-	// http.ListenAndServe("localhost:8080", core.Router)
-	// t.Fail()
-}
-
-func TestBasicPOST(t *testing.T) {
-	core := crudinator.New()
-
-	core.RegisterPersistentStore(&fixtures.FuzzerPS{})
-	core.RegisterResource(Resource1{})
-
-	req, _ := http.NewRequest("POST", "/Resource1/id", nil)
-	rw := fixtures.MockRW{}
-	core.Router.ServeHTTP(&rw, req)
-
-	// http.ListenAndServe("localhost:8080", core.Router)
-	t.Fail()
-}
-
 type Resource1 struct {
 	ID   string
 	Name string
+}
+
+func TestBasicPoC(t *testing.T) {
+	core, _ := crudinator.New()
+
+	core.RegisterPersistentStore(&fixtures.FuzzerPS{})
+	core.RegisterResource(Resource1{})
+
+	for _, test := range []fixtures.Case{
+		{
+			Name: "GET 1",
+			URL:  "/Resource1/SomeID",
+		},
+		{
+			Name: "GET Many",
+			URL:  "/Resource1",
+		},
+		{
+			Name: "POST",
+			URL:  "/Resource1/SomeID",
+		},
+	} {
+		fixtures.RunTest(t, test, core.Router)
+	}
+}
+
+func TestLocalPostgres(t *testing.T) {
+	conf := crudinator.Config{
+		PersistentStore: crudinator.PersistentStoreConfig{
+			Engine:   "postgres",
+			Username: "crudinator",
+			Password: "password",
+			Schema:   "crudinator",
+		},
+	}
+	core, err := crudinator.New(conf)
+	assert.NilError(t, err)
+
+	core.RegisterResource(Resource1{})
+
+	for _, test := range []fixtures.Case{
+		{
+			Name: "Get empty",
+			URL:  "/Resource1/doesNotExist",
+		},
+	} {
+		fixtures.RunTest(t, test, core.Router)
+	}
 }
